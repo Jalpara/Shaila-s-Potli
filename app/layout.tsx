@@ -14,7 +14,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Shaila's Potli",
-  description: 'Minimalist single-page storefront for Shaila\'s Potli',
+  description: "Discover Shaila's Potli, a collection of handcrafted ladoos in Traditional Potlis and Eco-Friendly Boxes.",
+  icons: {
+    icon: "/assets/stamp.png",
+    apple: "/assets/stamp.png", 
+  },
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
