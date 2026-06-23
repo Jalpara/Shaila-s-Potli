@@ -324,7 +324,7 @@ export default function ShailasPotliApp() {
               )}
 
               {checkoutStep === 'payment' && (
-                <div className="flex flex-col flex-grow py-6">
+                <div className="flex flex-col flex-grow pt-6">
                    <h4 className="font-serif text-xl mb-2">Complete Payment</h4>
                    
                    <div className="flex gap-6 items-center p-4 bg-white/40 rounded-sm border border-[#2C2623]/15 mb-4 mt-4">
@@ -367,6 +367,27 @@ export default function ShailasPotliApp() {
                    </p>
                 </div>
               )}
+
+              <div className="p-4 bg-white/30 border border-[#2C2623]/10 rounded-sm mb-8">
+                  <p className="text-[10px] uppercase tracking-widest opacity-60 mb-2">
+                    Stay Connected
+                  </p>
+
+                  <p className="text-sm opacity-80 leading-relaxed mb-3">
+                    Join the Shaila's Potli Community for batch updates, new product launches,
+                    delivery announcements, and special offers.
+                  </p>
+
+                  <a
+                    href="https://chat.whatsapp.com/BBrT6YNozoo8b0G9rc6rML"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex underline items-center gap-2 text-[#5A2D0C] text-xs tracking-wide hover:opacity-70 transition-opacity"
+                  >
+                    Join WhatsApp Community →
+                  </a>
+              </div>
+
 
               {checkoutStep === 'success' && (
                 <div className="flex flex-col items-center justify-center flex-grow py-12 text-center">

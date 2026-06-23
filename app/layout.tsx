@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css'; // Global styles
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -27,6 +28,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       <body className="font-sans bg-[#FAF6F0] text-[#2C2623] min-h-screen" suppressHydrationWarning>
         {children}
       </body>
+      <GoogleAnalytics gaId="G-85GZJ2J6HT" />
     </html>
   );
 }
