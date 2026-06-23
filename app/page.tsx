@@ -207,10 +207,13 @@ export default function ShailasPotliApp() {
                      <p className="text-xs opacity-60">
                        From ₹{product.Price_4_Pack}
                      </p>
-                     <span className="text-[#C05C3E] opacity-0 group-hover:opacity-100 transition-opacity">
-                       <ShoppingBag className="w-5 h-5" />
-                     </span>
                   </div>
+                  <button 
+                        disabled={!product.In_Stock_4 && !product.In_Stock_8}
+                        className="w-full mt-2 bg-[#C05C3E] text-[#FAF6F0] py-4 text-[10px] tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Add to Cart
+                      </button>
                 </div>
               ))}
             </div>
