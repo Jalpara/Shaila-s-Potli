@@ -26,6 +26,9 @@ export default function ShailasPotliApp() {
   // Form Errors
   const [formErrors, setFormErrors] = useState<{phone?: string; address?: string}>({});
   
+
+
+  
   // Checkout State
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedSize, setSelectedSize] = useState<4 | 8 | null>(null);
@@ -108,14 +111,35 @@ export default function ShailasPotliApp() {
     }
   };
 
-  const validateForm = () => {
+const validateForm = () => {
     const errors: {phone?: string; address?: string} = {};
+    
+    // 1. Phone validation
     if (!customerPhone || customerPhone.replace(/\D/g, '').length < 10) {
       errors.phone = "Please enter a valid 10-digit phone number";
     }
+    
+    // 2. Address & Pincode validation
     if (!customerAddress || customerAddress.trim().length < 10) {
       errors.address = "Please enter a complete delivery address";
+    } else {
+      // Extracts any 6-digit number sequence from the address
+      const pincodeMatch = customerAddress.match(/\b\d{6}\b/);
+      
+      if (!pincodeMatch) {
+        errors.address = "Please include your 6-digit pincode in the address.";
+      } else {
+        const pincode = pincodeMatch[0];
+        
+        // Pin zones: 400xxx (Mumbai/Navi Mumbai/Thane), 410xxx (Panvel/Raigad), 421xxx (Thane district/Kalyan)
+        const isServiceable = /^(400|401|410|421)\d{3}$/.test(pincode);
+        
+        if (!isServiceable) {
+          errors.address = "Delivery is currently limited to Mumbai, Navi Mumbai, Thane, and Panvel.";
+        }
+      }
     }
+    
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -205,7 +229,7 @@ export default function ShailasPotliApp() {
                   <h3 className="font-serif text-lg mb-1">{product.Name}</h3>
                   <div className="flex justify-between items-center mt-auto">
                      <p className="text-xs opacity-60">
-                       From ₹{product.Price_4_Pack}
+                       Starting From ₹{product.Price_4_Pack}
                      </p>
                   </div>
                   <button 
