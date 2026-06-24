@@ -97,11 +97,8 @@ export default function ShailasPotliApp() {
     setFormErrors({});
   };
 
-  const calculateTotal = () => {
-    if (!selectedProduct || !selectedSize) return 0;
-    const price = selectedSize === 4 ? selectedProduct.Price_4_Pack : selectedProduct.Price_8_Pack;
-    return price * quantity;
-  };
+
+  
 
   const handleCopyUpi = () => {
     if (upiVpa) {
@@ -129,19 +126,60 @@ const validateForm = () => {
       if (!pincodeMatch) {
         errors.address = "Please include your 6-digit pincode in the address.";
       } else {
-        const pincode = pincodeMatch[0];
+        const validation = getDynamicDeliveryFee(customerAddress);
         
-        // Pin zones: 400xxx (Mumbai/Navi Mumbai/Thane), 410xxx (Panvel/Raigad), 421xxx (Thane district/Kalyan)
-        const isServiceable = /^(400|401|410|421)\d{3}$/.test(pincode);
-        
-        if (!isServiceable) {
-          errors.address = "Delivery is currently limited to Mumbai, Navi Mumbai, Thane, and Panvel.";
+        if (!validation.isValid) {
+          errors.address = validation.error;
         }
       }
     }
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+const getDynamicDeliveryFee = (addressText: string): { fee: number; isValid: boolean; error?: string } => {
+  const pincodeMatch = addressText.match(/\b\d{6}\b/);
+  if (!pincodeMatch) {
+    return { fee: 0, isValid: false, error: "Please include your 6-digit pincode in the address." };
+  }
+
+  const pincode = parseInt(pincodeMatch[0], 10);
+
+  // 1. NAVI MUMBAI TIER (Lowest Fee — ₹40)
+  const isNaviMumbai = 
+    (pincode >= 400701 && pincode <= 400710) || 
+    pincode === 400614 || 
+    [410208, 410209, 410210, 410222].includes(pincode);
+
+  if (isNaviMumbai) return { fee: 40, isValid: true };
+
+  // 2. MUMBAI & THANE TIER (Standard Fee — ₹95)
+  const isMumbaiOrThane = 
+    (pincode >= 400001 && pincode <= 400099) || 
+    (pincode >= 400601 && pincode <= 400610);
+
+  if (isMumbaiOrThane) return { fee: 95, isValid: true };
+
+  // 3. PANVEL TIER (Extended Distance Fee — ₹75)
+  const isPanvel = [410206, 410218, 410221].includes(pincode);
+
+  if (isPanvel) return { fee: 75, isValid: true };
+
+  return { 
+    fee: 0, 
+    isValid: false, 
+    error: "Delivery is currently limited to Navi Mumbai, Mumbai, Thane, and Panvel." 
+  };
+};
+
+  const deliveryInfo = getDynamicDeliveryFee(customerAddress);
+  const currentDeliveryFee = deliveryInfo.isValid ? deliveryInfo.fee : 0;
+
+  const calculateTotal = () => {
+    if (!selectedProduct || !selectedSize) return 0;
+    const price = selectedSize === 4 ? selectedProduct.Price_4_Pack : selectedProduct.Price_8_Pack;
+    return (price * quantity) + currentDeliveryFee;
   };
 
   const handleConfirmOrder = async () => {
@@ -431,10 +469,23 @@ const validateForm = () => {
               
               {/* Checkout Fixed Footer block inside Right Pane */}
               {checkoutStep !== 'success' && (
-                <div className="pt-6 border-t border-[#2C2623]/15 mt-auto">
-                  <div className="flex justify-between items-center mb-6">
-                     <span className="text-sm">Total Payable</span>
-                     <span className="text-xl font-medium tracking-tight font-sans">₹{calculateTotal()}</span>
+                <div className="pt-3 border-t border-[#2C2623]/15 mt-auto">
+
+                  <div className="space-y-2 mb-6">
+                     <div className="flex justify-between items-center text-xs opacity-60">
+                        <span>Items Subtotal</span>
+                        <span>₹{((selectedSize === 4 ? selectedProduct.Price_4_Pack : selectedProduct.Price_8_Pack) * quantity)}</span>
+                     </div>
+                     <div className="flex justify-between items-center text-xs opacity-60">
+                        <span>Delivery Fee</span>
+                        <span className={deliveryInfo.isValid ? "text-[#C05C3E] font-medium" : "italic text-[11px]"}>
+                          {deliveryInfo.isValid ? `₹${currentDeliveryFee}` : 'Calculated via pincode'}
+                        </span>
+                     </div>
+                     <div className="border-t border-[#2C2623]/10 pt-2 flex justify-between items-center">
+                        <span className="text-sm font-medium">Total Payable</span>
+                        <span className="text-xl font-medium tracking-tight font-sans">₹{calculateTotal()}</span>
+                     </div>
                   </div>
 
                   {orderError && (
@@ -452,10 +503,15 @@ const validateForm = () => {
                         onClick={() => {
                           if (validateForm()) setCheckoutStep('payment');
                         }}
-                        disabled={!selectedSize || !customerName.trim() || !customerPhone.trim() || !customerAddress.trim() || !upiVpa}
-                        className="w-full bg-[#C05C3E] text-[#FAF6F0] py-4 text-[10px] tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={!selectedSize || !customerName.trim() || !customerPhone.trim() || !customerAddress.trim() || !upiVpa || !deliveryInfo.isValid}
+                        className="w-full bg-[#C05C3E] text-[#FAF6F0] py-4 px-20 text-[10px] tracking-widest uppercase hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Proceed to Pay
+                        {!customerAddress.trim() 
+                            ? "Proceed to Pay" 
+                            : !deliveryInfo.isValid 
+                              ? "We're only accepting orders in Mumbai, Navi Mumbai, Thane & Panvel"
+                              : "Proceed to Pay"
+                          }
                       </button>
                     </div>
                   ) : (
